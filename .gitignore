@@ -8,9 +8,11 @@ venv/
 # Jupyter
 .ipynb_checkpoints/
 
-# Data (large files should not go into Git)
-data/raw/
-data/processed/
+# Data (large files should not go into Git, but keep folder READMEs)
+data/raw/*
+data/processed/*
+!data/raw/README.md
+!data/processed/README.md
 *.csv
 *.zip
 

@@ -24,3 +24,12 @@ etc.) on railway tracks from images.
 ## Author
 
 Diyorbek
+
+## Project Structure
+
+data/raw/         original, unmodified datasets
+data/processed/   cleaned/split data, ready for training
+notebooks/        EDA and experiment notebooks
+src/              reusable Python code (data loading, training, eval)
+models/           trained model weight files
+experiments/      MLflow experiment tracking
