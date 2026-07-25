@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data (large files should not go into Git)
+data/raw/
+data/processed/
+*.csv
+*.zip
+
+# Model weights (large binary files)
+*.pt
+*.pth
+*.onnx
+
+# Environment / secrets
+.env
+
+# OS
+.DS_Store
+
+# MLflow
+mlruns/
