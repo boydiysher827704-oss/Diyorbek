@@ -74,11 +74,32 @@ properly annotated, and combined with the visual inspection finding above
 (some large images look unrelated to rail tracks), they are candidates for
 manual review or exclusion before training.
 
+## Follow-up: Manual Review of the 14 Empty-Label Large Images
+
+All 14 large-resolution images with empty labels were visually inspected.
+
+**Finding:** None of them resemble the earlier "noisy" examples spotted
+during the general sample review (e.g. the ruler/tool close-up). All 14
+show clear, legible rail track scenes — rail, ballast (gravel), wooden
+sleepers, bolts — with no obvious visible defect.
+
+**Conclusion:** the empty labels for these images are very likely
+legitimate "no defect present" cases, not annotation gaps. They are usable
+as background/negative examples during training. No exclusion needed.
+
+**Minor note:** a few images (`i24`, `i17`, `i14`) show small colored
+pixel artifacts in one corner — likely a compression/metadata rendering
+quirk, not a data quality concern.
+
 ## Action Items for Preprocessing Stage
 
-1. Manually review the 30 large-resolution images (and their 14 empty
-   labels) to decide: keep, exclude, or re-annotate.
-2. Confirm empty-label images are true "no defect" backgrounds and not
-   annotation gaps, before relying on them as negative examples.
+1. ~~Manually review the 30 large-resolution images (and their 14 empty
+   labels) to decide: keep, exclude, or re-annotate.~~ **Done — see
+   follow-up above. Decision: keep all 14 as valid background examples.**
+2. ~~Confirm empty-label images are true "no defect" backgrounds and not
+   annotation gaps, before relying on them as negative examples.~~ **Done
+   — confirmed via visual inspection.**
 3. Proceed with `imgsz=640` during training (per the YOLO config already
    used in this project) regardless of original image size.
+4. The remaining 16 large images (30 total - 14 empty) still have normal
+   annotations and need no special handling.
