@@ -33,3 +33,11 @@ notebooks/        EDA and experiment notebooks
 src/              reusable Python code (data loading, training, eval)
 models/           trained model weight files
 experiments/      MLflow experiment tracking
+## 🚀 How to Use This Model (Inference)
+
+This project includes a reusable script to load the trained model and run it on a new image.
+
+### 1. Install requirements
+Make sure you have Python installed, then install the required library:
+```bash
+pip install ultralytics
