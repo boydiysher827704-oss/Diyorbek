@@ -104,22 +104,42 @@ quirk, not a data quality concern.
 
 ## Data Leakage Check
 
-Risk: if near-duplicate images (e.g. consecutive camera frames of the
+**Risk:** if near-duplicate images (e.g. consecutive camera frames of the
 same rail spot) ended up split across train and test, the model could
 appear to perform well on test data it has effectively already seen.
 
-Assessment: the dataset split (train/valid/test) was performed by
-Roboflow, not manually by us. Filenames show varied prefixes (B--,
-C--, RF--, i), suggesting images were aggregated from multiple
-sources/sessions rather than one continuous video feed - which lowers
-(but does not eliminate) the risk of near-duplicate frames being split
-across sets.
+**Method:** perceptual hashing (`imagehash.phash`) was computed for every
+train and test image, then every test image was compared against every
+train image using Hamming distance. Pairs with distance <= 5 were
+flagged as near-duplicates.
 
-Decision: no near-duplicate detection was run for this MVP stage,
-given time constraints. This is a known limitation, documented here for
-transparency. If test performance looks unexpectedly high relative to
-visual difficulty, revisit this check (e.g. via perceptual image hashing)
-before trusting the metric.
+**Result: CONFIRMED LEAKAGE.** 14 near-duplicate pairs were found between
+test (112 images) and train (783 images) - about 12.5% of the test set.
+13 of the 14 pairs had a hash distance of 0 (near-identical images),
+e.g.:
+
+- test/C--97-...jpg <-> train/C--117-...jpg (distance 0)
+- test/B--5-...jpg matched THREE different train images at distance 0
+  (train/B--99-, train/B--97-, train/B--20-)
+
+This means these test images (or visually identical crops/copies of
+them) were also present in the training set.
+
+**Implication:** the test-set metrics reported in
+experiments/final_evaluation.md (P=0.590, R=0.786, mAP50=0.651) are
+likely **optimistically biased** - the model had effectively already
+seen ~12.5% of the "unseen" test images during training. True
+generalization performance on genuinely novel images is probably
+somewhat lower than reported.
+
+**Decision:** given time constraints, the model was not retrained with a
+deduplicated split for this submission. This is disclosed as a known,
+confirmed limitation rather than hidden. The recommended fix (for a
+future iteration) is to remove near-duplicate images from train (or
+consolidate them into a single split) and retrain/re-evaluate.
+
+**Status:** CONFIRMED (previously an open risk, now verified with
+evidence). See ISSUE_LOG.md Issue 5 for the formal record.
 
 ## Status
 

@@ -1,5 +1,17 @@
 # Final Evaluation — baseline_v1 (Selected Candidate)
 
+## Important Caveat: Confirmed Data Leakage
+
+A near-duplicate check (run after this evaluation — see EDA_NOTES.md
+"Data Leakage Check") found that **~12.5% of test images have a
+near-identical match in the training set** (14/112, mostly exact
+perceptual matches). This means the metrics below are likely somewhat
+**optimistic** — the model had effectively already seen a portion of
+the "held out" test data. True generalization performance on fully
+novel images is probably modestly lower than reported here. This is
+disclosed as a known, unresolved limitation (see ISSUE_LOG.md Issue 5)
+rather than corrected in this submission due to time constraints.
+
 ## Purpose
 One-time evaluation of the selected candidate (baseline_v1, YOLOv8n,
 30 epochs) on the protected test set. The test set was not used in any

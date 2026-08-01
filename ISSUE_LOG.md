@@ -75,19 +75,26 @@ Data Gate's required format.
 
 ---
 
-## Issue 5: No Near-Duplicate / Leakage Detection
+## Issue 5: Near-Duplicate Images Between Train and Test (CONFIRMED)
 
-- **Observation:** No systematic check was run to detect near-duplicate
-  images (e.g. consecutive camera frames) split across train/valid/test.
-- **Risk:** If present, could inflate validation/test metrics by letting
-  the model see near-copies of test images during training.
-- **Decision:** Not run for this MVP stage due to time constraints.
-  Partial mitigation: filenames show varied prefixes (B--, C--, RF--, i),
-  suggesting images came from multiple sources rather than one
-  continuous video feed, which lowers (but doesn't eliminate) this risk.
-- **Evidence:** EDA_NOTES.md, "Data Leakage Check" section.
-- **Status:** Open — documented as a limitation; recommended as a
-  follow-up check if metrics are used for decisions beyond this MVP.
+- **Observation:** Perceptual hashing (imagehash.phash, Hamming distance
+  <= 5) was run comparing all 112 test images against all 783 train
+  images. Found 14 near-duplicate pairs (~12.5% of test set); 13 of 14
+  had distance 0 (near-identical images).
+- **Risk:** The model had effectively already seen ~12.5% of the "held
+  out" test images (or visually identical copies) during training,
+  biasing test metrics optimistically.
+- **Decision:** Given time constraints, the model was not retrained with
+  a deduplicated split for this submission. The finding is disclosed
+  transparently rather than hidden, with the true metrics flagged as
+  potentially optimistic.
+- **Evidence:** EDA_NOTES.md, "Data Leakage Check" section (includes
+  example pairs and methodology). final_evaluation.md updated with a
+  caveat referencing this finding.
+- **Status:** CONFIRMED, not yet fixed. Recommended next step: remove
+  near-duplicate images from train (keep only in one split) and
+  retrain/re-evaluate before trusting reported test metrics for any
+  real decision.
 
 ---
 
