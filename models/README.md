@@ -25,3 +25,9 @@ results[0].show()
 ```
 
 This loads the trained weights directly - no retraining needed.
+# Model Weights
+
+## best.pt
+- **File:** `best.pt` - trained YOLO model
+- **Download:** [Link to Google Drive] (replace with your actual link)
+- **Place:** Copy the file into this `models/` folder.
