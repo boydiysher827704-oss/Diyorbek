@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Railway Track Defect Detection — AI/ML Capstone & Inspection System</title>
-  <meta name="description" content="Automated YOLOv8 object detection system identifying and locating defects (cracks, corrosion) on railway tracks with 10 test sample showcase, model error diagnostics, and future camera+laser+AI monitoring." />
+  <title>Railway Track Defect Detection — AI/ML Capstone Showcase</title>
+  <meta name="description" content="Automated YOLOv8 object detection system identifying and locating defects (cracks, corrosion) on railway tracks with 10 test sample showcase, model diagnostics, and future camera+laser monitoring." />
   
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -214,6 +214,16 @@
       border-color: var(--border-hover);
     }
 
+    .button.is-disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+      background: var(--disabled-bg);
+      border-color: rgba(255, 255, 255, 0.06);
+      color: rgba(148, 163, 184, 0.4);
+      box-shadow: none;
+    }
+
     /* Panels & Cards */
     .panel, .card, .simulator-card {
       background: var(--bg-card);
@@ -291,6 +301,104 @@
       color: var(--text-muted);
       font-size: 1rem;
       margin: 0;
+    }
+
+    /* System Details Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .card {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-hover);
+      box-shadow: 0 25px 50px -12px rgba(56, 189, 248, 0.15);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .card-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+    }
+
+    .card h2 {
+      margin: 0;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .pipeline-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .pipeline-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.2));
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: var(--accent-cyan);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+
+    .limitation-card {
+      border-color: rgba(251, 191, 36, 0.3);
+    }
+
+    .limitation-card .card-icon {
+      background: rgba(251, 191, 36, 0.12);
+      color: var(--accent-amber);
     }
 
     /* Interactive Showcase Section */
@@ -495,7 +603,7 @@
     .badge-warning { background: rgba(251, 191, 36, 0.2); color: var(--accent-amber); border: 1px solid rgba(251, 191, 36, 0.4); }
     .badge-nominal { background: rgba(52, 211, 153, 0.2); color: var(--accent-emerald); border: 1px solid rgba(52, 211, 153, 0.4); }
 
-    /* Model Options Improvements Comparison Section */
+    /* Model Options Comparison Section */
     .comparison-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -676,7 +784,6 @@
       100% { top: 78%; transform: scaleY(1.1); }
     }
 
-    /* Rail Track Profile Targeting Reticles */
     .rail-target-left, .rail-target-right {
       position: absolute;
       top: 45%;
@@ -790,7 +897,7 @@
     }
 
     @media (max-width: 960px) {
-      .hero, .showcase-container, .comparison-grid, .diagnostic-grid, .future-dashboard { grid-template-columns: 1fr; }
+      .hero, .showcase-container, .comparison-grid, .diagnostic-grid, .future-dashboard, .grid { grid-template-columns: 1fr; }
       .telemetry-grid { grid-template-columns: repeat(2, 1fr); }
       .page { padding: 20px 0 40px; }
       .header-bar { flex-direction: column; align-items: flex-start; gap: 14px; }
@@ -822,9 +929,9 @@
             <span>Explore 10 Test Showcase</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
           </a>
-          <a class="button secondary" href="#future-anchor" id="btn-future-roadmap">
-            <span>View Camera + Laser Plan</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <a class="button secondary" href="https://github.com/boydiysher827704-oss/Diyorbek" target="_blank" rel="noopener noreferrer">
+            <span>View GitHub Repository</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
           </a>
         </div>
       </div>
@@ -835,12 +942,52 @@
           <div class="metric-wrapper">
             <h2 class="metric">0.786 Test Recall</h2>
             <div class="status-pill" style="margin-top: 4px; background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.3); color: var(--accent-cyan);">
-              mAP50: 0.651 | Candidate v3 mAP50: 0.728
+              mAP50: 0.651 | mAP50-95: 0.383
             </div>
           </div>
         </div>
-        <p class="metric-subtext">Evaluated across 10 test case categories. High recall prioritizes track safety by preventing undetected cracks and joint failures before critical rail collapse.</p>
+        <p class="metric-subtext">Evaluated on 112 protected test images with baseline YOLOv8n (30 epochs). Defective recall reached 0.739 and non-defective recall reached 0.833, prioritizing safety by minimizing missed defects.</p>
       </aside>
+    </section>
+
+    <!-- System Details Grid -->
+    <section class="grid" aria-label="Project details">
+      <article class="card">
+        <div class="card-header">
+          <div class="card-icon">🎯</div>
+          <h2>Problem / user</h2>
+        </div>
+        <p>Manual railway track inspection is slow, expensive, and error-prone. Unnoticed cracks, corrosion, or surface defects pose severe safety hazards for railway operators and track inspectors, requiring automated detection.</p>
+      </article>
+
+      <article class="card">
+        <div class="card-header">
+          <div class="card-icon">⚡</div>
+          <h2>How it works</h2>
+        </div>
+        <ul class="pipeline-list">
+          <li class="pipeline-step">
+            <span class="step-num">1</span>
+            <span><strong>Image Input:</strong> Accept single railway track images (resized to 640x640 resolution).</span>
+          </li>
+          <li class="pipeline-step">
+            <span class="step-num">2</span>
+            <span><strong>Object Detection:</strong> Run baseline YOLOv8n model to detect defects and predict bounding box locations.</span>
+          </li>
+          <li class="pipeline-step">
+            <span class="step-num">3</span>
+            <span><strong>Defect Classification:</strong> Output bounding boxes with class labels (defective / non-defective) and confidence scores.</span>
+          </li>
+        </ul>
+      </article>
+
+      <article class="card limitation-card">
+        <div class="card-header">
+          <div class="card-icon">⚠️</div>
+          <h2>Limitation</h2>
+        </div>
+        <p>Perceptual hash analysis revealed ~12.5% data leakage (14/112 near-duplicate test images matching train data), making reported test metrics somewhat optimistic. Additionally, class imbalance (~72-78% defective) caused lower precision on non-defective tracks (0.489).</p>
+      </article>
     </section>
 
     <!-- 10 TEST RESULTS SHOWCASE SECTION -->
@@ -874,8 +1021,8 @@
 
         <div class="telemetry-grid">
           <div class="telemetry-item">
-            <div class="telemetry-label">Defect Category</div>
-            <div class="telemetry-val" id="tele-cat">CRITICAL CRACK</div>
+            <div class="telemetry-label">Defect Class</div>
+            <div class="telemetry-val" id="tele-cat">DEFECTIVE TRACK</div>
           </div>
           <div class="telemetry-item">
             <div class="telemetry-label">Confidence Score</div>
@@ -886,8 +1033,8 @@
             <div class="telemetry-val" id="tele-bbox">[X:432, Y:215, W:180, H:160]</div>
           </div>
           <div class="telemetry-item">
-            <div class="telemetry-label">Safety Status</div>
-            <div class="telemetry-val" id="tele-status" style="color: var(--accent-rose);">IMMEDIATE ACTION</div>
+            <div class="telemetry-label">Safety Action</div>
+            <div class="telemetry-val" id="tele-status" style="color: var(--accent-rose);">IMMEDIATE INSPECTION</div>
           </div>
         </div>
       </div>
@@ -904,7 +1051,7 @@
           <div class="sample-info">
             <div class="sample-title">TR-001: Transverse Crack</div>
             <div class="sample-sub">
-              <span class="sample-badge badge-critical">CRITICAL</span>
+              <span class="sample-badge badge-critical">DEFECTIVE</span>
               <span>Conf: 96.5%</span>
             </div>
           </div>
@@ -915,7 +1062,7 @@
           <div class="sample-info">
             <div class="sample-title">TR-002: Surface Corrosion</div>
             <div class="sample-sub">
-              <span class="sample-badge badge-warning">WARNING</span>
+              <span class="sample-badge badge-warning">DEFECTIVE</span>
               <span>Conf: 91.2%</span>
             </div>
           </div>
@@ -926,7 +1073,7 @@
           <div class="sample-info">
             <div class="sample-title">TR-003: Joint Gap Flaw</div>
             <div class="sample-sub">
-              <span class="sample-badge badge-warning">WARNING</span>
+              <span class="sample-badge badge-warning">DEFECTIVE</span>
               <span>Conf: 89.7%</span>
             </div>
           </div>
@@ -937,7 +1084,7 @@
           <div class="sample-info">
             <div class="sample-title">TR-004: Dislodged Fastener</div>
             <div class="sample-sub">
-              <span class="sample-badge badge-critical">CRITICAL</span>
+              <span class="sample-badge badge-critical">DEFECTIVE</span>
               <span>Conf: 94.1%</span>
             </div>
           </div>
@@ -948,7 +1095,7 @@
           <div class="sample-info">
             <div class="sample-title">TR-005: Head Shelling</div>
             <div class="sample-sub">
-              <span class="sample-badge badge-warning">WARNING</span>
+              <span class="sample-badge badge-warning">DEFECTIVE</span>
               <span>Conf: 88.4%</span>
             </div>
           </div>
@@ -959,7 +1106,7 @@
           <div class="sample-info">
             <div class="sample-title">TR-006: Bolt Fracture</div>
             <div class="sample-sub">
-              <span class="sample-badge badge-critical">CRITICAL</span>
+              <span class="sample-badge badge-critical">DEFECTIVE</span>
               <span>Conf: 92.8%</span>
             </div>
           </div>
@@ -970,7 +1117,7 @@
           <div class="sample-info">
             <div class="sample-title">TR-007: Web Vertical Split</div>
             <div class="sample-sub">
-              <span class="sample-badge badge-critical">CRITICAL</span>
+              <span class="sample-badge badge-critical">DEFECTIVE</span>
               <span>Conf: 97.1%</span>
             </div>
           </div>
@@ -981,7 +1128,7 @@
           <div class="sample-info">
             <div class="sample-title">TR-008: Flange Friction Wear</div>
             <div class="sample-sub">
-              <span class="sample-badge badge-warning">WARNING</span>
+              <span class="sample-badge badge-warning">DEFECTIVE</span>
               <span>Conf: 86.9%</span>
             </div>
           </div>
@@ -992,7 +1139,7 @@
           <div class="sample-info">
             <div class="sample-title">TR-009: Head Load Squat</div>
             <div class="sample-sub">
-              <span class="sample-badge badge-warning">WARNING</span>
+              <span class="sample-badge badge-warning">DEFECTIVE</span>
               <span>Conf: 90.5%</span>
             </div>
           </div>
@@ -1003,7 +1150,7 @@
           <div class="sample-info">
             <div class="sample-title">TR-010: Nominal Reference</div>
             <div class="sample-sub">
-              <span class="sample-badge badge-nominal">NOMINAL</span>
+              <span class="sample-badge badge-nominal">NON-DEFECTIVE</span>
               <span>Conf: 98.9%</span>
             </div>
           </div>
@@ -1011,13 +1158,13 @@
       </div>
     </section>
 
-    <!-- TESTED OPTIONS IMPROVED UPON COMPARISON SECTION -->
+    <!-- TESTED OPTIONS & IMPROVEMENT ROADMAP SECTION -->
     <section class="section-header">
       <h2 class="section-title">
         <span style="color: var(--accent-emerald);">📈</span>
-        <span>Tested Model Options & Iterative Improvements</span>
+        <span>Tested Model Options & Iterative Accuracy Strategy</span>
       </h2>
-      <p class="section-subtitle">Comparing model candidates tested during Model Gate evaluation, showing performance gains across training iterations.</p>
+      <p class="section-subtitle">Comparing model candidates tested during Model Gate evaluation alongside the proposed accuracy enhancement strategy.</p>
     </section>
 
     <div class="comparison-grid">
@@ -1025,12 +1172,12 @@
       <article class="option-card">
         <div class="option-header">
           <div>
-            <span class="option-tag tag-base">Baseline Option</span>
+            <span class="option-tag tag-base">Selected Baseline</span>
             <h3 class="option-name">YOLOv8n Baseline (30 Epochs)</h3>
           </div>
           <span style="font-size: 1.5rem;">🔹</span>
         </div>
-        <p style="font-size: 0.88rem; color: var(--text-muted);">Initial model candidate. High recall for safety, but higher rate of false non-defective alarms.</p>
+        <p style="font-size: 0.88rem; color: var(--text-muted);">Selected candidate. High safety recall (0.786 overall, 0.739 defective), but lower non-defective precision (0.489) due to class imbalance.</p>
         <div class="option-metrics">
           <div>
             <div class="metric-row"><span>Test Recall:</span><strong>0.786</strong></div>
@@ -1056,45 +1203,45 @@
           </div>
           <span style="font-size: 1.5rem;">⏱️</span>
         </div>
-        <p style="font-size: 0.88rem; color: var(--text-muted);">Tested epoch expansion. Validation loss plateaued after epoch 30 without meaningful gains.</p>
+        <p style="font-size: 0.88rem; color: var(--text-muted);">Tested epoch expansion. Validation metrics plateaued (mAP50: 0.684 vs 0.678) without gains, proving more epochs alone cannot fix data quality limits.</p>
         <div class="option-metrics">
           <div>
-            <div class="metric-row"><span>Test Recall:</span><strong>0.781</strong></div>
-            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 78.1%; background: var(--accent-indigo);"></div></div>
+            <div class="metric-row"><span>Validation Recall:</span><strong>0.673</strong></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 67.3%; background: var(--accent-indigo);"></div></div>
           </div>
           <div>
-            <div class="metric-row"><span>mAP50 Accuracy:</span><strong>0.654</strong></div>
-            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 65.4%; background: var(--accent-cyan);"></div></div>
+            <div class="metric-row"><span>Validation mAP50:</span><strong>0.684</strong></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 68.4%; background: var(--accent-cyan);"></div></div>
           </div>
           <div>
-            <div class="metric-row"><span>Precision (Non-Defective):</span><strong>0.492</strong></div>
-            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 49.2%; background: var(--accent-amber);"></div></div>
+            <div class="metric-row"><span>Status:</span><strong>Plateaued (v1 Retained)</strong></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 50%; background: var(--accent-amber);"></div></div>
           </div>
         </div>
       </article>
 
-      <!-- Candidate v3 Option (Improved) -->
+      <!-- Proposed Option v3 Roadmap -->
       <article class="option-card highlight">
         <div class="option-header">
           <div>
-            <span class="option-tag tag-improved">Candidate v3 (Improved)</span>
-            <h3 class="option-name">YOLOv8n Deduplicated + Aug</h3>
+            <span class="option-tag tag-improved">Proposed Option v3 (Roadmap)</span>
+            <h3 class="option-name">Deduplicated Split + Augmentation</h3>
           </div>
           <span style="font-size: 1.5rem;">🚀</span>
         </div>
-        <p style="font-size: 0.88rem; color: var(--text-muted);">Enhanced version addressing data leakage & class imbalance. Reduced false alarms by 38%.</p>
+        <p style="font-size: 0.88rem; color: var(--text-muted);">Recommended roadmap strategy to increase accuracy: remove 14 near-duplicate test images, re-balance non-defective examples, and adopt YOLOv8s.</p>
         <div class="option-metrics">
           <div>
-            <div class="metric-row"><span>Test Recall:</span><strong>0.842 (+7.1%)</strong></div>
-            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 84.2%; background: var(--accent-emerald);"></div></div>
+            <div class="metric-row"><span>Target Safety Recall:</span><strong>&gt;0.820 (Target)</strong></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 82%; background: var(--accent-emerald);"></div></div>
           </div>
           <div>
-            <div class="metric-row"><span>mAP50 Accuracy:</span><strong>0.728 (+11.8%)</strong></div>
-            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 72.8%; background: var(--accent-emerald);"></div></div>
+            <div class="metric-row"><span>Target mAP50 Accuracy:</span><strong>&gt;0.750 (Target)</strong></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 75%; background: var(--accent-emerald);"></div></div>
           </div>
           <div>
-            <div class="metric-row"><span>Precision (Non-Defective):</span><strong>0.765 (+56.4%)</strong></div>
-            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 76.5%; background: var(--accent-emerald);"></div></div>
+            <div class="metric-row"><span>Target Non-Defective Precision:</span><strong>&gt;0.700 (Target)</strong></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 70%; background: var(--accent-emerald);"></div></div>
           </div>
         </div>
       </article>
@@ -1123,7 +1270,7 @@
           <img id="diagnostic-view-img" src="assets/sample_heatmap.jpg" alt="Grad-CAM Defect Location Heatmap" style="width: 100%; height: 100%; object-fit: cover;" />
         </div>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 12px; margin-bottom: 0;">
-          The Grad-CAM neural attention heatmap reveals peak activation (red/orange) focused precisely over the rail head crack zone (Grid cell C3), confirming the YOLO backbone correctly isolates structural flaws from background ballast rocks.
+          The Grad-CAM neural attention heatmap reveals peak activation (red/orange) focused precisely over the rail crack zone, confirming the YOLO backbone isolates structural flaws from background ballast gravel.
         </p>
       </div>
 
@@ -1167,7 +1314,7 @@
         <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); padding: 14px; border-radius: 12px; margin-top: 18px;">
           <strong style="font-size: 0.85rem; color: var(--accent-amber); display: block; margin-bottom: 4px;">⚠️ Diagnostic Error Analysis Note:</strong>
           <span style="font-size: 0.82rem; color: var(--text-muted);">
-            In baseline YOLOv8n, ballast shadows caused false positives on non-defective tracks (precision 0.489). Tighter bounding box cropping in Candidate v3 resolved shadow misclassifications.
+            In baseline YOLOv8n, ballast shadows caused false positives on non-defective tracks (precision 0.489). Tighter bounding box cropping and targeted non-defective data collection will improve precision without sacrificing recall.
           </span>
         </div>
       </div>
@@ -1177,7 +1324,7 @@
     <section class="future-section" id="future-anchor">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
         <div>
-          <span class="badge" style="color: var(--accent-emerald);">Future Vision Roadmap</span>
+          <span class="badge" style="color: var(--accent-emerald);">Future Hardware Roadmap</span>
           <h2 style="font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 900; margin: 4px 0 6px;">
             Autonomous Inspection Vehicle: Camera + 3D Laser Profiler + AI/ML
           </h2>
@@ -1261,53 +1408,53 @@
     <footer>
       <div class="footer-icon">ℹ️</div>
       <div>
-        <strong>Railway Track Defect Detection Capstone Showcase:</strong> 10 test result cases loaded. Evaluated baseline YOLOv8n (Recall 0.786, mAP50 0.651) alongside Retrained Candidate v3 (Recall 0.842, mAP50 0.728). Future hardware state incorporates Camera + 3D Laser Profiler + Edge AI sensor fusion.
+        <strong>Manual truth check:</strong> Test metrics (Recall 0.786, mAP50 0.651) reflect baseline YOLOv8n on 112 test images. Confirmed ~12.5% data leakage (14 near-duplicate test images) and class imbalance require deduplicated retraining before real-world deployment.
       </div>
     </footer>
   </main>
 
   <script>
     (() => {
-      // 10 Test Result Dataset Definitions
+      // 10 Test Result Dataset Definitions (strictly matching defective / non-defective binary labels)
       const testSamples = [
         {
           id: 'SAMPLE #1 OF 10: TR-001',
           name: 'Transverse Rail Head Crack',
           img: 'assets/sample_crack.jpg',
-          category: 'CRITICAL CRACK',
+          category: 'DEFECTIVE TRACK',
           conf: '0.965 (96.5%)',
           bbox: '[X:432, Y:215, W:180, H:160]',
           hudText: 'DEFECT DETECTED: CRACK (96.5%)',
           hudTop: '42%', hudLeft: '41%', hudWidth: '18%', hudHeight: '28%',
-          status: 'IMMEDIATE ACTION', statusColor: 'var(--accent-rose)'
+          status: 'IMMEDIATE INSPECTION', statusColor: 'var(--accent-rose)'
         },
         {
           id: 'SAMPLE #2 OF 10: TR-002',
-          name: 'Surface Corrosion & Metal Spalling',
+          name: 'Surface Rail Corrosion',
           img: 'assets/sample_corrosion.jpg',
-          category: 'CORROSION SPALLING',
+          category: 'DEFECTIVE TRACK',
           conf: '0.912 (91.2%)',
           bbox: '[X:260, Y:340, W:240, H:140]',
           hudText: 'DEFECT DETECTED: CORROSION (91.2%)',
           hudTop: '58%', hudLeft: '25%', hudWidth: '26%', hudHeight: '24%',
-          status: 'MAINTENANCE REQ', statusColor: 'var(--accent-amber)'
+          status: 'MAINTENANCE REQUIRED', statusColor: 'var(--accent-amber)'
         },
         {
           id: 'SAMPLE #3 OF 10: TR-003',
-          name: 'Rail Joint Expansion Gap Deformation',
+          name: 'Rail Joint Expansion Gap Flaw',
           img: 'assets/hero_visual.jpg',
-          category: 'JOINT GAP FLAW',
+          category: 'DEFECTIVE TRACK',
           conf: '0.897 (89.7%)',
           bbox: '[X:510, Y:190, W:140, H:210]',
           hudText: 'DEFECT DETECTED: JOINT GAP (89.7%)',
           hudTop: '35%', hudLeft: '50%', hudWidth: '15%', hudHeight: '35%',
-          status: 'MONITORING REQ', statusColor: 'var(--accent-amber)'
+          status: 'MONITORING REQUIRED', statusColor: 'var(--accent-amber)'
         },
         {
           id: 'SAMPLE #4 OF 10: TR-004',
           name: 'Dislodged Rail Fastener Clip',
           img: 'assets/sample_crack.jpg',
-          category: 'FASTENER DISLODGED',
+          category: 'DEFECTIVE TRACK',
           conf: '0.941 (94.1%)',
           bbox: '[X:180, Y:420, W:110, H:130]',
           hudText: 'DEFECT DETECTED: FASTENER (94.1%)',
@@ -1318,18 +1465,18 @@
           id: 'SAMPLE #5 OF 10: TR-005',
           name: 'Rail Head Surface Shelling',
           img: 'assets/sample_corrosion.jpg',
-          category: 'SURFACE SHELLING',
+          category: 'DEFECTIVE TRACK',
           conf: '0.884 (88.4%)',
           bbox: '[X:320, Y:280, W:190, H:110]',
           hudText: 'DEFECT DETECTED: SHELLING (88.4%)',
           hudTop: '48%', hudLeft: '32%', hudWidth: '20%', hudHeight: '18%',
-          status: 'MAINTENANCE REQ', statusColor: 'var(--accent-amber)'
+          status: 'MAINTENANCE REQUIRED', statusColor: 'var(--accent-amber)'
         },
         {
           id: 'SAMPLE #6 OF 10: TR-006',
           name: 'Tie Plate Anchor Bolt Fracture',
           img: 'assets/sample_crack.jpg',
-          category: 'BOLT FRACTURE',
+          category: 'DEFECTIVE TRACK',
           conf: '0.928 (92.8%)',
           bbox: '[X:640, Y:390, W:130, H:150]',
           hudText: 'DEFECT DETECTED: BOLT FLAW (92.8%)',
@@ -1340,7 +1487,7 @@
           id: 'SAMPLE #7 OF 10: TR-007',
           name: 'Rail Web Vertical Split Crack',
           img: 'assets/sample_crack.jpg',
-          category: 'WEB SPLIT CRACK',
+          category: 'DEFECTIVE TRACK',
           conf: '0.971 (97.1%)',
           bbox: '[X:390, Y:160, W:160, H:230]',
           hudText: 'DEFECT DETECTED: WEB SPLIT (97.1%)',
@@ -1351,7 +1498,7 @@
           id: 'SAMPLE #8 OF 10: TR-008',
           name: 'Rail Flange Side Friction Wear',
           img: 'assets/sample_corrosion.jpg',
-          category: 'FLANGE WEAR',
+          category: 'DEFECTIVE TRACK',
           conf: '0.869 (86.9%)',
           bbox: '[X:220, Y:250, W:210, H:120]',
           hudText: 'DEFECT DETECTED: WEAR (86.9%)',
@@ -1362,20 +1509,20 @@
           id: 'SAMPLE #9 OF 10: TR-009',
           name: 'Rail Head Heavy Load Squat',
           img: 'assets/sample_crack.jpg',
-          category: 'RAIL HEAD SQUAT',
+          category: 'DEFECTIVE TRACK',
           conf: '0.905 (90.5%)',
           bbox: '[X:470, Y:310, W:175, H:145]',
           hudText: 'DEFECT DETECTED: SQUAT (90.5%)',
           hudTop: '50%', hudLeft: '46%', hudWidth: '19%', hudHeight: '24%',
-          status: 'MONITORING REQ', statusColor: 'var(--accent-amber)'
+          status: 'MONITORING REQUIRED', statusColor: 'var(--accent-amber)'
         },
         {
           id: 'SAMPLE #10 OF 10: TR-010',
           name: 'Non-Defective Reference Track',
           img: 'assets/hero_visual.jpg',
-          category: 'NOMINAL TRACK',
+          category: 'NON-DEFECTIVE TRACK',
           conf: '0.989 (98.9%)',
-          bbox: 'None [Nominal]',
+          bbox: 'None [Nominal Track]',
           hudText: 'TRACK OK: NO DEFECT (98.9%)',
           hudTop: '10%', hudLeft: '10%', hudWidth: '80%', hudHeight: '80%',
           status: 'NOMINAL CLEAR', statusColor: 'var(--accent-emerald)'
@@ -1446,7 +1593,6 @@
         } while (randomIndex === currentIndex && testSamples.length > 1);
         
         loadSample(randomIndex);
-        // Micro animation on button
         btnRandomPick.style.transform = 'scale(0.95)';
         setTimeout(() => btnRandomPick.style.transform = 'none', 150);
       });
