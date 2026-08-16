@@ -12,6 +12,16 @@ and a confirmed limitation (data leakage) has been disclosed
 transparently. See [PROJECT_STATUS.md](./PROJECT_STATUS.md) for the
 current, detailed status.
 
+## Live Showcase
+
+An interactive project showcase page ([`index.html`](./index.html)) is
+included in this repo — it presents the project, sample detections, and
+model results visually.
+
+- **View locally:** open `index.html` in any browser
+- **View online:** once GitHub Pages is enabled for this repo, it will be
+  available at `https://boydiysher827704-oss.github.io/Diyorbek/`
+
 ## Quick Start
 
 ```bash
