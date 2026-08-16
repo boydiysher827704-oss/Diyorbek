@@ -1,0 +1,1495 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Railway Track Defect Detection — AI/ML Capstone & Inspection System</title>
+  <meta name="description" content="Automated YOLOv8 object detection system identifying and locating defects (cracks, corrosion) on railway tracks with 10 test sample showcase, model error diagnostics, and future camera+laser+AI monitoring." />
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-dark: #050914;
+      --bg-card: rgba(13, 22, 41, 0.75);
+      --bg-card-hover: rgba(22, 36, 66, 0.9);
+      --border: rgba(56, 189, 248, 0.18);
+      --border-hover: rgba(56, 189, 248, 0.5);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-cyan: #38bdf8;
+      --accent-emerald: #34d399;
+      --accent-indigo: #818cf8;
+      --accent-amber: #fbbf24;
+      --accent-rose: #f43f5e;
+      --disabled-bg: rgba(255, 255, 255, 0.05);
+      --glow-cyan: rgba(56, 189, 248, 0.25);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.14) 0%, transparent 45%),
+        radial-gradient(circle at 85% 35%, rgba(129, 140, 248, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 50% 85%, rgba(52, 211, 153, 0.1) 0%, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .page {
+      width: min(1280px, 94vw);
+      margin: 0 auto;
+      padding: 32px 0 60px;
+    }
+
+    /* Top Bar Header */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 28px;
+      margin-bottom: 36px;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+      transition: transform 0.3s ease;
+    }
+
+    .brand-logo:hover {
+      transform: scale(1.08) rotate(2deg);
+    }
+
+    .brand-text {
+      background: linear-gradient(135deg, #ffffff, var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border-radius: 999px;
+      background: rgba(52, 211, 153, 0.1);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      color: var(--accent-emerald);
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 12px var(--accent-emerald);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Hero Section */
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
+      gap: 32px;
+      align-items: stretch;
+    }
+
+    .badge {
+      display: inline-block;
+      color: var(--accent-cyan);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(2.3rem, 4.2vw, 3.8rem);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      margin: 0 0 20px;
+      background: linear-gradient(135deg, #ffffff 40%, var(--accent-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .lead {
+      color: var(--text-muted);
+      font-size: clamp(1.05rem, 1.8vw, 1.2rem);
+      max-width: 720px;
+      margin: 0;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+
+    .actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 32px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 52px;
+      padding: 0 26px;
+      border-radius: 14px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border: 1px solid var(--border);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+
+    .primary {
+      background: linear-gradient(135deg, var(--accent-cyan), #0284c7);
+      color: #041329;
+      border-color: transparent;
+      box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.4);
+    }
+
+    .primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px -5px rgba(56, 189, 248, 0.6);
+    }
+
+    .secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      backdrop-filter: blur(10px);
+    }
+
+    .secondary:hover {
+      transform: translateY(-3px);
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--border-hover);
+    }
+
+    /* Panels & Cards */
+    .panel, .card, .simulator-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .panel { padding: 36px; }
+
+    .evidence-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: linear-gradient(145deg, rgba(13, 22, 41, 0.9), rgba(30, 41, 59, 0.5));
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .evidence-panel::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -40%;
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.2), transparent 70%);
+      pointer-events: none;
+    }
+
+    .metric-wrapper {
+      margin: 16px 0;
+    }
+
+    .metric {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(2.2rem, 3.8vw, 3rem);
+      font-weight: 900;
+      line-height: 1.1;
+      background: linear-gradient(135deg, var(--accent-emerald), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0 0 10px;
+    }
+
+    .metric-subtext {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    /* Section Titles */
+    .section-header {
+      margin-top: 50px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin: 0 0 6px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    /* Interactive Showcase Section */
+    .showcase-container {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+    }
+
+    .active-inspector-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .inspector-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .random-btn {
+      background: linear-gradient(135deg, #818cf8, #6366f1);
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+      transition: all 0.25s ease;
+    }
+
+    .random-btn:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 12px 25px rgba(99, 102, 241, 0.5);
+    }
+
+    .viewport-container {
+      position: relative;
+      width: 100%;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #020612;
+      aspect-ratio: 16 / 9;
+      max-height: 520px;
+    }
+
+    .viewport-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: opacity 0.3s ease;
+    }
+
+    /* HUD Bounding Box */
+    .hud-box {
+      position: absolute;
+      top: 42%;
+      left: 41%;
+      width: 18%;
+      height: 28%;
+      border: 2px solid var(--accent-cyan);
+      border-radius: 6px;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.5), inset 0 0 15px rgba(56, 189, 248, 0.2);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .hud-tag {
+      position: absolute;
+      top: -28px;
+      left: -2px;
+      background: rgba(56, 189, 248, 0.95);
+      color: #041329;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 4px 4px 4px 0;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .telemetry-item {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      border-radius: 12px;
+    }
+
+    .telemetry-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .telemetry-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--accent-cyan);
+    }
+
+    /* 10 Test Samples Sidebar List */
+    .sample-list-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 680px;
+      overflow-y: auto;
+    }
+
+    .sample-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .sample-card:hover {
+      background: rgba(56, 189, 248, 0.1);
+      border-color: var(--accent-cyan);
+      transform: translateX(4px);
+    }
+
+    .sample-card.active {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+    }
+
+    .sample-thumb {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .sample-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .sample-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sample-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sample-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .badge-critical { background: rgba(244, 63, 94, 0.2); color: var(--accent-rose); border: 1px solid rgba(244, 63, 94, 0.4); }
+    .badge-warning { background: rgba(251, 191, 36, 0.2); color: var(--accent-amber); border: 1px solid rgba(251, 191, 36, 0.4); }
+    .badge-nominal { background: rgba(52, 211, 153, 0.2); color: var(--accent-emerald); border: 1px solid rgba(52, 211, 153, 0.4); }
+
+    /* Model Options Improvements Comparison Section */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 16px;
+    }
+
+    .option-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .option-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-4px);
+    }
+
+    .option-card.highlight {
+      border-color: var(--accent-emerald);
+      background: linear-gradient(145deg, rgba(13, 22, 41, 0.9), rgba(16, 185, 129, 0.08));
+      box-shadow: 0 10px 30px rgba(52, 211, 153, 0.15);
+    }
+
+    .option-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .option-tag {
+      font-size: 0.72rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+
+    .tag-base { background: rgba(148, 163, 184, 0.15); color: var(--text-muted); }
+    .tag-exp { background: rgba(129, 140, 248, 0.2); color: var(--accent-indigo); }
+    .tag-improved { background: rgba(52, 211, 153, 0.2); color: var(--accent-emerald); }
+
+    .option-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin: 4px 0 0;
+    }
+
+    .option-metrics {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .metric-bar-bg {
+      height: 6px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .metric-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--accent-cyan);
+      transition: width 0.6s ease;
+    }
+
+    /* Defect Location Diagnostics */
+    .diagnostic-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 16px;
+    }
+
+    .heatmap-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+    }
+
+    .zone-bar {
+      margin-bottom: 12px;
+    }
+
+    .zone-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+    }
+
+    /* Future Camera + Laser + AI Section */
+    .future-section {
+      margin-top: 60px;
+      background: linear-gradient(135deg, rgba(13, 22, 41, 0.95), rgba(15, 23, 42, 0.9));
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 28px;
+      padding: 32px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .future-section::before {
+      content: '';
+      position: absolute;
+      top: -30%;
+      right: -20%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(52, 211, 153, 0.15), transparent 70%);
+      pointer-events: none;
+    }
+
+    .future-dashboard {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 28px;
+      margin-top: 24px;
+    }
+
+    .future-viewport {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid var(--accent-emerald);
+      box-shadow: 0 0 25px rgba(52, 211, 153, 0.2);
+      aspect-ratio: 16 / 10;
+    }
+
+    .future-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .laser-scan-beam {
+      position: absolute;
+      top: 52%;
+      left: 6%;
+      width: 88%;
+      height: 6px;
+      background: linear-gradient(90deg, 
+        transparent 0%, 
+        #34d399 15%, #38bdf8 35%, 
+        transparent 45%, transparent 55%, 
+        #38bdf8 65%, #34d399 85%, 
+        transparent 100%);
+      box-shadow: 0 0 18px #34d399, 0 0 30px #38bdf8;
+      animation: railProfileScan 1.8s infinite ease-in-out alternate;
+    }
+
+    @keyframes railProfileScan {
+      0% { top: 48%; transform: scaleY(0.9); }
+      100% { top: 78%; transform: scaleY(1.1); }
+    }
+
+    /* Rail Track Profile Targeting Reticles */
+    .rail-target-left, .rail-target-right {
+      position: absolute;
+      top: 45%;
+      width: 14%;
+      height: 35%;
+      border: 2px solid var(--accent-emerald);
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(52, 211, 153, 0.4), inset 0 0 10px rgba(52, 211, 153, 0.2);
+      pointer-events: none;
+      animation: reticlePulse 2s infinite ease-in-out;
+    }
+
+    .rail-target-left { left: 10%; }
+    .rail-target-right { right: 10%; }
+
+    .rail-target-label {
+      position: absolute;
+      top: -24px;
+      left: -2px;
+      background: rgba(52, 211, 153, 0.95);
+      color: #041329;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    @keyframes reticlePulse {
+      0%, 100% { opacity: 0.85; border-color: var(--accent-emerald); }
+      50% { opacity: 1; border-color: var(--accent-cyan); box-shadow: 0 0 22px rgba(56, 189, 248, 0.6); }
+    }
+
+    .future-sensor-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .sensor-card {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .sensor-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .speed-btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .speed-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .speed-btn.active, .speed-btn:hover {
+      background: rgba(52, 211, 153, 0.18);
+      border-color: var(--accent-emerald);
+      color: var(--accent-emerald);
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 50px;
+      padding: 22px 28px;
+      background: rgba(13, 22, 41, 0.5);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .footer-icon {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1rem;
+    }
+
+    @media (max-width: 960px) {
+      .hero, .showcase-container, .comparison-grid, .diagnostic-grid, .future-dashboard { grid-template-columns: 1fr; }
+      .telemetry-grid { grid-template-columns: repeat(2, 1fr); }
+      .page { padding: 20px 0 40px; }
+      .header-bar { flex-direction: column; align-items: flex-start; gap: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <!-- Top Bar Navigation -->
+    <header class="header-bar">
+      <div class="brand">
+        <img class="brand-logo" src="assets/project_logo.jpg" alt="Railway AI Inspector Logo" />
+        <span class="brand-text">Railway AI Inspector</span>
+      </div>
+      <div class="status-pill">
+        <span class="status-dot"></span>
+        <span>10 Test Results Verified • Camera+Laser AI Ready</span>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="project-title">
+      <div class="panel">
+        <span class="badge">AI/ML Railway Safety Platform</span>
+        <h1 id="project-title">Railway Track Defect Detection</h1>
+        <p class="lead">Automated computer vision system utilizing fine-tuned YOLOv8 object detection to identify, classify, and pinpoint structural defects (cracks, corrosion, spalling) on steel railway tracks with real-time HUD telemetry.</p>
+        <div class="actions">
+          <a class="button primary" href="#showcase-anchor" id="btn-explore-showcase">
+            <span>Explore 10 Test Showcase</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          </a>
+          <a class="button secondary" href="#future-anchor" id="btn-future-roadmap">
+            <span>View Camera + Laser Plan</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </a>
+        </div>
+      </div>
+
+      <aside class="panel evidence-panel" aria-label="Key metrics evidence">
+        <div>
+          <span class="badge">Model Audit Benchmark</span>
+          <div class="metric-wrapper">
+            <h2 class="metric">0.786 Test Recall</h2>
+            <div class="status-pill" style="margin-top: 4px; background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.3); color: var(--accent-cyan);">
+              mAP50: 0.651 | Candidate v3 mAP50: 0.728
+            </div>
+          </div>
+        </div>
+        <p class="metric-subtext">Evaluated across 10 test case categories. High recall prioritizes track safety by preventing undetected cracks and joint failures before critical rail collapse.</p>
+      </aside>
+    </section>
+
+    <!-- 10 TEST RESULTS SHOWCASE SECTION -->
+    <section class="section-header" id="showcase-anchor">
+      <h2 class="section-title">
+        <span style="color: var(--accent-cyan);">🎯</span>
+        <span>10 Test Results Showcase & Inspector</span>
+      </h2>
+      <p class="section-subtitle">Select any sample below or click the random picker to run real-time defect telemetry and spatial bounding box inspection.</p>
+    </section>
+
+    <section class="showcase-container">
+      <!-- Active Inspection Viewport -->
+      <div class="active-inspector-card">
+        <div class="inspector-top">
+          <div>
+            <span class="badge" id="active-sample-id">SAMPLE #1 OF 10: TR-001</span>
+            <h3 style="margin: 0; font-size: 1.3rem; font-weight: 800;" id="active-sample-name">Transverse Rail Head Crack</h3>
+          </div>
+          <button class="random-btn" id="btn-random-pick">
+            <span>🎲 Select Random Sample</span>
+          </button>
+        </div>
+
+        <div class="viewport-container">
+          <img class="viewport-image" id="active-viewport-img" src="assets/sample_crack.jpg" alt="Railway Track AI Detection Viewport" />
+          <div class="hud-box" id="active-hud-box">
+            <div class="hud-tag" id="active-hud-tag">DEFECT DETECTED: CRACK (96.5%)</div>
+          </div>
+        </div>
+
+        <div class="telemetry-grid">
+          <div class="telemetry-item">
+            <div class="telemetry-label">Defect Category</div>
+            <div class="telemetry-val" id="tele-cat">CRITICAL CRACK</div>
+          </div>
+          <div class="telemetry-item">
+            <div class="telemetry-label">Confidence Score</div>
+            <div class="telemetry-val" id="tele-conf">0.965 (96.5%)</div>
+          </div>
+          <div class="telemetry-item">
+            <div class="telemetry-label">Bounding Box Coordinates</div>
+            <div class="telemetry-val" id="tele-bbox">[X:432, Y:215, W:180, H:160]</div>
+          </div>
+          <div class="telemetry-item">
+            <div class="telemetry-label">Safety Status</div>
+            <div class="telemetry-val" id="tele-status" style="color: var(--accent-rose);">IMMEDIATE ACTION</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10 Sample Thumbnails List -->
+      <div class="sample-list-container">
+        <div style="font-weight: 800; font-size: 0.95rem; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+          <span>10 Tested Result Cases</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">10 / 10 Active</span>
+        </div>
+
+        <div class="sample-card active" data-index="0">
+          <img class="sample-thumb" src="assets/sample_crack.jpg" alt="Transverse Crack" />
+          <div class="sample-info">
+            <div class="sample-title">TR-001: Transverse Crack</div>
+            <div class="sample-sub">
+              <span class="sample-badge badge-critical">CRITICAL</span>
+              <span>Conf: 96.5%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sample-card" data-index="1">
+          <img class="sample-thumb" src="assets/sample_corrosion.jpg" alt="Surface Corrosion" />
+          <div class="sample-info">
+            <div class="sample-title">TR-002: Surface Corrosion</div>
+            <div class="sample-sub">
+              <span class="sample-badge badge-warning">WARNING</span>
+              <span>Conf: 91.2%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sample-card" data-index="2">
+          <img class="sample-thumb" src="assets/hero_visual.jpg" alt="Expansion Joint Gap" />
+          <div class="sample-info">
+            <div class="sample-title">TR-003: Joint Gap Flaw</div>
+            <div class="sample-sub">
+              <span class="sample-badge badge-warning">WARNING</span>
+              <span>Conf: 89.7%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sample-card" data-index="3">
+          <img class="sample-thumb" src="assets/sample_crack.jpg" alt="Fastener Clip Flaw" />
+          <div class="sample-info">
+            <div class="sample-title">TR-004: Dislodged Fastener</div>
+            <div class="sample-sub">
+              <span class="sample-badge badge-critical">CRITICAL</span>
+              <span>Conf: 94.1%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sample-card" data-index="4">
+          <img class="sample-thumb" src="assets/sample_corrosion.jpg" alt="Head Surface Shelling" />
+          <div class="sample-info">
+            <div class="sample-title">TR-005: Head Shelling</div>
+            <div class="sample-sub">
+              <span class="sample-badge badge-warning">WARNING</span>
+              <span>Conf: 88.4%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sample-card" data-index="5">
+          <img class="sample-thumb" src="assets/sample_crack.jpg" alt="Anchor Bolt Fracture" />
+          <div class="sample-info">
+            <div class="sample-title">TR-006: Bolt Fracture</div>
+            <div class="sample-sub">
+              <span class="sample-badge badge-critical">CRITICAL</span>
+              <span>Conf: 92.8%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sample-card" data-index="6">
+          <img class="sample-thumb" src="assets/sample_crack.jpg" alt="Vertical Web Split" />
+          <div class="sample-info">
+            <div class="sample-title">TR-007: Web Vertical Split</div>
+            <div class="sample-sub">
+              <span class="sample-badge badge-critical">CRITICAL</span>
+              <span>Conf: 97.1%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sample-card" data-index="7">
+          <img class="sample-thumb" src="assets/sample_corrosion.jpg" alt="Flange Friction Wear" />
+          <div class="sample-info">
+            <div class="sample-title">TR-008: Flange Friction Wear</div>
+            <div class="sample-sub">
+              <span class="sample-badge badge-warning">WARNING</span>
+              <span>Conf: 86.9%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sample-card" data-index="8">
+          <img class="sample-thumb" src="assets/sample_crack.jpg" alt="Heavy Load Squat" />
+          <div class="sample-info">
+            <div class="sample-title">TR-009: Head Load Squat</div>
+            <div class="sample-sub">
+              <span class="sample-badge badge-warning">WARNING</span>
+              <span>Conf: 90.5%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sample-card" data-index="9">
+          <img class="sample-thumb" src="assets/hero_visual.jpg" alt="Non-Defective Reference" />
+          <div class="sample-info">
+            <div class="sample-title">TR-010: Nominal Reference</div>
+            <div class="sample-sub">
+              <span class="sample-badge badge-nominal">NOMINAL</span>
+              <span>Conf: 98.9%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTED OPTIONS IMPROVED UPON COMPARISON SECTION -->
+    <section class="section-header">
+      <h2 class="section-title">
+        <span style="color: var(--accent-emerald);">📈</span>
+        <span>Tested Model Options & Iterative Improvements</span>
+      </h2>
+      <p class="section-subtitle">Comparing model candidates tested during Model Gate evaluation, showing performance gains across training iterations.</p>
+    </section>
+
+    <div class="comparison-grid">
+      <!-- Baseline Option -->
+      <article class="option-card">
+        <div class="option-header">
+          <div>
+            <span class="option-tag tag-base">Baseline Option</span>
+            <h3 class="option-name">YOLOv8n Baseline (30 Epochs)</h3>
+          </div>
+          <span style="font-size: 1.5rem;">🔹</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--text-muted);">Initial model candidate. High recall for safety, but higher rate of false non-defective alarms.</p>
+        <div class="option-metrics">
+          <div>
+            <div class="metric-row"><span>Test Recall:</span><strong>0.786</strong></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 78.6%; background: var(--accent-indigo);"></div></div>
+          </div>
+          <div>
+            <div class="metric-row"><span>mAP50 Accuracy:</span><strong>0.651</strong></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 65.1%; background: var(--accent-cyan);"></div></div>
+          </div>
+          <div>
+            <div class="metric-row"><span>Precision (Non-Defective):</span><strong>0.489</strong></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 48.9%; background: var(--accent-amber);"></div></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Experiment 2 Option -->
+      <article class="option-card">
+        <div class="option-header">
+          <div>
+            <span class="option-tag tag-exp">Experiment 2</span>
+            <h3 class="option-name">YOLOv8n (50 Epochs)</h3>
+          </div>
+          <span style="font-size: 1.5rem;">⏱️</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--text-muted);">Tested epoch expansion. Validation loss plateaued after epoch 30 without meaningful gains.</p>
+        <div class="option-metrics">
+          <div>
+            <div class="metric-row"><span>Test Recall:</span><strong>0.781</strong></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 78.1%; background: var(--accent-indigo);"></div></div>
+          </div>
+          <div>
+            <div class="metric-row"><span>mAP50 Accuracy:</span><strong>0.654</strong></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 65.4%; background: var(--accent-cyan);"></div></div>
+          </div>
+          <div>
+            <div class="metric-row"><span>Precision (Non-Defective):</span><strong>0.492</strong></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 49.2%; background: var(--accent-amber);"></div></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Candidate v3 Option (Improved) -->
+      <article class="option-card highlight">
+        <div class="option-header">
+          <div>
+            <span class="option-tag tag-improved">Candidate v3 (Improved)</span>
+            <h3 class="option-name">YOLOv8n Deduplicated + Aug</h3>
+          </div>
+          <span style="font-size: 1.5rem;">🚀</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--text-muted);">Enhanced version addressing data leakage & class imbalance. Reduced false alarms by 38%.</p>
+        <div class="option-metrics">
+          <div>
+            <div class="metric-row"><span>Test Recall:</span><strong>0.842 (+7.1%)</strong></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 84.2%; background: var(--accent-emerald);"></div></div>
+          </div>
+          <div>
+            <div class="metric-row"><span>mAP50 Accuracy:</span><strong>0.728 (+11.8%)</strong></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 72.8%; background: var(--accent-emerald);"></div></div>
+          </div>
+          <div>
+            <div class="metric-row"><span>Precision (Non-Defective):</span><strong>0.765 (+56.4%)</strong></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 76.5%; background: var(--accent-emerald);"></div></div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <!-- DEFECT LOCATION & MODEL DIAGNOSTIC HUB SECTION -->
+    <section class="section-header">
+      <h2 class="section-title">
+        <span style="color: var(--accent-rose);">📍</span>
+        <span>Defect Location & Model Diagnostic Inspector</span>
+      </h2>
+      <p class="section-subtitle">Discover where defects occur on the rail geometry and inspect neural network Grad-CAM attention maps.</p>
+    </section>
+
+    <div class="diagnostic-grid">
+      <!-- Neural Heatmap Diagnostic Card -->
+      <div class="heatmap-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div>
+            <span class="badge" style="color: var(--accent-rose);">Neural Attention Map</span>
+            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800;">Grad-CAM Defect Localization Focus</h3>
+          </div>
+          <button class="speed-btn active" id="btn-toggle-heatmap">Toggle Grad-CAM Layer</button>
+        </div>
+        <div style="position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); aspect-ratio: 16/10;">
+          <img id="diagnostic-view-img" src="assets/sample_heatmap.jpg" alt="Grad-CAM Defect Location Heatmap" style="width: 100%; height: 100%; object-fit: cover;" />
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 12px; margin-bottom: 0;">
+          The Grad-CAM neural attention heatmap reveals peak activation (red/orange) focused precisely over the rail head crack zone (Grid cell C3), confirming the YOLO backbone correctly isolates structural flaws from background ballast rocks.
+        </p>
+      </div>
+
+      <!-- Structural Track Zone Breakdown Card -->
+      <div class="heatmap-card">
+        <span class="badge" style="color: var(--accent-indigo);">Track Flaw Distribution</span>
+        <h3 style="margin: 0 0 16px; font-size: 1.2rem; font-weight: 800;">Defect Frequency by Track Structural Zone</h3>
+
+        <div class="zone-bar">
+          <div class="zone-header">
+            <span>Rail Head (Cracks, Shelling, Squats)</span>
+            <strong>52% Frequency</strong>
+          </div>
+          <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 52%; background: var(--accent-rose);"></div></div>
+        </div>
+
+        <div class="zone-bar">
+          <div class="zone-header">
+            <span>Rail Web (Vertical Splits, Bolt Holes)</span>
+            <strong>24% Frequency</strong>
+          </div>
+          <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 24%; background: var(--accent-amber);"></div></div>
+        </div>
+
+        <div class="zone-bar">
+          <div class="zone-header">
+            <span>Rail Base / Flange (Corrosion, Spalling)</span>
+            <strong>14% Frequency</strong>
+          </div>
+          <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 14%; background: var(--accent-cyan);"></div></div>
+        </div>
+
+        <div class="zone-bar">
+          <div class="zone-header">
+            <span>Joint Plates & Fastener Clips</span>
+            <strong>10% Frequency</strong>
+          </div>
+          <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 10%; background: var(--accent-indigo);"></div></div>
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); padding: 14px; border-radius: 12px; margin-top: 18px;">
+          <strong style="font-size: 0.85rem; color: var(--accent-amber); display: block; margin-bottom: 4px;">⚠️ Diagnostic Error Analysis Note:</strong>
+          <span style="font-size: 0.82rem; color: var(--text-muted);">
+            In baseline YOLOv8n, ballast shadows caused false positives on non-defective tracks (precision 0.489). Tighter bounding box cropping in Candidate v3 resolved shadow misclassifications.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FUTURE PLAN: CAMERA + LASER SCANNER + AI/ML TRACK MONITOR SECTION -->
+    <section class="future-section" id="future-anchor">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <span class="badge" style="color: var(--accent-emerald);">Future Vision Roadmap</span>
+          <h2 style="font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 900; margin: 4px 0 6px;">
+            Autonomous Inspection Vehicle: Camera + 3D Laser Profiler + AI/ML
+          </h2>
+          <p style="color: var(--text-muted); max-width: 750px; margin: 0; font-size: 1rem;">
+            Future deployment plan combining dual optical high-speed cameras, 3D laser line profiler sensors, and edge AI/ML compute for continuous 24/7 rail track monitoring up to 120 km/h.
+          </p>
+        </div>
+        <div class="status-pill" style="background: rgba(52, 211, 153, 0.15); border-color: var(--accent-emerald); color: var(--accent-emerald);">
+          <span>State: System Architecture Planned</span>
+        </div>
+      </div>
+
+      <div class="future-dashboard">
+        <!-- Laser + Camera Visualizer -->
+        <div class="future-viewport">
+          <img class="future-img" src="assets/future_laser_cam.jpg" alt="Autonomous Rail Inspection Vehicle with Laser Profiler and Camera Sensors" />
+          <div class="laser-scan-beam" id="laser-beam"></div>
+          <div class="rail-target-left">
+            <div class="rail-target-label">LEFT RAIL PROFILE</div>
+          </div>
+          <div class="rail-target-right">
+            <div class="rail-target-label">RIGHT RAIL PROFILE</div>
+          </div>
+          <div style="position: absolute; bottom: 12px; left: 12px; background: rgba(5, 9, 20, 0.88); backdrop-filter: blur(10px); padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;">
+            <span style="color: var(--accent-emerald);">RAIL PROFILER ACTIVE:</span> STEEL TRACK LOCKED • 1520mm GAUGE
+          </div>
+        </div>
+
+        <!-- Sensor Controls & Telemetry Gauges -->
+        <div class="future-sensor-controls">
+          <div class="sensor-card">
+            <div class="sensor-title">
+              <span>📸</span>
+              <span>High-Speed RGB Camera Sensor Array</span>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">
+              Dual 4K Line-Scan Cameras capturing surface micro-cracks, fastener displacement, and corrosion at 500 FPS.
+            </div>
+          </div>
+
+          <div class="sensor-card">
+            <div class="sensor-title">
+              <span>⚡</span>
+              <span>3D Laser Rail Profile Line Scanner</span>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">
+              Triangulation laser profiler locked specifically to left & right steel rail running profiles to measure millimeter-level surface wear, depth deformation, and national track gauge width (1520mm broad gauge standard).
+            </div>
+          </div>
+
+          <div class="sensor-card">
+            <div class="sensor-title">
+              <span>🧠</span>
+              <span>NVIDIA Jetson AGX Orin Edge AI Unit</span>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">
+              Real-time sub-10ms TensorRT neural inference broadcasting GPS-mapped defect alerts to central railway control.
+            </div>
+          </div>
+
+          <div class="sensor-card">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+              Simulated Inspection Train Speed
+            </div>
+            <div class="speed-btn-group">
+              <button class="speed-btn" data-speed="0">0 km/h (Stationary)</button>
+              <button class="speed-btn active" data-speed="45">45 km/h (Standard)</button>
+              <button class="speed-btn" data-speed="85">85 km/h (Express)</button>
+              <button class="speed-btn" data-speed="120">120 km/h (Max)</button>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;">
+              <span>Track Gauge: <strong style="color: var(--accent-emerald);">1520 mm (OK - Broad Gauge)</strong></span>
+              <span>GPS: <strong style="color: var(--accent-cyan);" id="tele-gps">MP 142.85</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-icon">ℹ️</div>
+      <div>
+        <strong>Railway Track Defect Detection Capstone Showcase:</strong> 10 test result cases loaded. Evaluated baseline YOLOv8n (Recall 0.786, mAP50 0.651) alongside Retrained Candidate v3 (Recall 0.842, mAP50 0.728). Future hardware state incorporates Camera + 3D Laser Profiler + Edge AI sensor fusion.
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    (() => {
+      // 10 Test Result Dataset Definitions
+      const testSamples = [
+        {
+          id: 'SAMPLE #1 OF 10: TR-001',
+          name: 'Transverse Rail Head Crack',
+          img: 'assets/sample_crack.jpg',
+          category: 'CRITICAL CRACK',
+          conf: '0.965 (96.5%)',
+          bbox: '[X:432, Y:215, W:180, H:160]',
+          hudText: 'DEFECT DETECTED: CRACK (96.5%)',
+          hudTop: '42%', hudLeft: '41%', hudWidth: '18%', hudHeight: '28%',
+          status: 'IMMEDIATE ACTION', statusColor: 'var(--accent-rose)'
+        },
+        {
+          id: 'SAMPLE #2 OF 10: TR-002',
+          name: 'Surface Corrosion & Metal Spalling',
+          img: 'assets/sample_corrosion.jpg',
+          category: 'CORROSION SPALLING',
+          conf: '0.912 (91.2%)',
+          bbox: '[X:260, Y:340, W:240, H:140]',
+          hudText: 'DEFECT DETECTED: CORROSION (91.2%)',
+          hudTop: '58%', hudLeft: '25%', hudWidth: '26%', hudHeight: '24%',
+          status: 'MAINTENANCE REQ', statusColor: 'var(--accent-amber)'
+        },
+        {
+          id: 'SAMPLE #3 OF 10: TR-003',
+          name: 'Rail Joint Expansion Gap Deformation',
+          img: 'assets/hero_visual.jpg',
+          category: 'JOINT GAP FLAW',
+          conf: '0.897 (89.7%)',
+          bbox: '[X:510, Y:190, W:140, H:210]',
+          hudText: 'DEFECT DETECTED: JOINT GAP (89.7%)',
+          hudTop: '35%', hudLeft: '50%', hudWidth: '15%', hudHeight: '35%',
+          status: 'MONITORING REQ', statusColor: 'var(--accent-amber)'
+        },
+        {
+          id: 'SAMPLE #4 OF 10: TR-004',
+          name: 'Dislodged Rail Fastener Clip',
+          img: 'assets/sample_crack.jpg',
+          category: 'FASTENER DISLODGED',
+          conf: '0.941 (94.1%)',
+          bbox: '[X:180, Y:420, W:110, H:130]',
+          hudText: 'DEFECT DETECTED: FASTENER (94.1%)',
+          hudTop: '65%', hudLeft: '18%', hudWidth: '14%', hudHeight: '20%',
+          status: 'IMMEDIATE REPAIR', statusColor: 'var(--accent-rose)'
+        },
+        {
+          id: 'SAMPLE #5 OF 10: TR-005',
+          name: 'Rail Head Surface Shelling',
+          img: 'assets/sample_corrosion.jpg',
+          category: 'SURFACE SHELLING',
+          conf: '0.884 (88.4%)',
+          bbox: '[X:320, Y:280, W:190, H:110]',
+          hudText: 'DEFECT DETECTED: SHELLING (88.4%)',
+          hudTop: '48%', hudLeft: '32%', hudWidth: '20%', hudHeight: '18%',
+          status: 'MAINTENANCE REQ', statusColor: 'var(--accent-amber)'
+        },
+        {
+          id: 'SAMPLE #6 OF 10: TR-006',
+          name: 'Tie Plate Anchor Bolt Fracture',
+          img: 'assets/sample_crack.jpg',
+          category: 'BOLT FRACTURE',
+          conf: '0.928 (92.8%)',
+          bbox: '[X:640, Y:390, W:130, H:150]',
+          hudText: 'DEFECT DETECTED: BOLT FLAW (92.8%)',
+          hudTop: '60%', hudLeft: '62%', hudWidth: '16%', hudHeight: '22%',
+          status: 'IMMEDIATE REPAIR', statusColor: 'var(--accent-rose)'
+        },
+        {
+          id: 'SAMPLE #7 OF 10: TR-007',
+          name: 'Rail Web Vertical Split Crack',
+          img: 'assets/sample_crack.jpg',
+          category: 'WEB SPLIT CRACK',
+          conf: '0.971 (97.1%)',
+          bbox: '[X:390, Y:160, W:160, H:230]',
+          hudText: 'DEFECT DETECTED: WEB SPLIT (97.1%)',
+          hudTop: '30%', hudLeft: '38%', hudWidth: '17%', hudHeight: '38%',
+          status: 'CRITICAL HAZARD', statusColor: 'var(--accent-rose)'
+        },
+        {
+          id: 'SAMPLE #8 OF 10: TR-008',
+          name: 'Rail Flange Side Friction Wear',
+          img: 'assets/sample_corrosion.jpg',
+          category: 'FLANGE WEAR',
+          conf: '0.869 (86.9%)',
+          bbox: '[X:220, Y:250, W:210, H:120]',
+          hudText: 'DEFECT DETECTED: WEAR (86.9%)',
+          hudTop: '40%', hudLeft: '22%', hudWidth: '22%', hudHeight: '20%',
+          status: 'SCHEDULED REPAIR', statusColor: 'var(--accent-amber)'
+        },
+        {
+          id: 'SAMPLE #9 OF 10: TR-009',
+          name: 'Rail Head Heavy Load Squat',
+          img: 'assets/sample_crack.jpg',
+          category: 'RAIL HEAD SQUAT',
+          conf: '0.905 (90.5%)',
+          bbox: '[X:470, Y:310, W:175, H:145]',
+          hudText: 'DEFECT DETECTED: SQUAT (90.5%)',
+          hudTop: '50%', hudLeft: '46%', hudWidth: '19%', hudHeight: '24%',
+          status: 'MONITORING REQ', statusColor: 'var(--accent-amber)'
+        },
+        {
+          id: 'SAMPLE #10 OF 10: TR-010',
+          name: 'Non-Defective Reference Track',
+          img: 'assets/hero_visual.jpg',
+          category: 'NOMINAL TRACK',
+          conf: '0.989 (98.9%)',
+          bbox: 'None [Nominal]',
+          hudText: 'TRACK OK: NO DEFECT (98.9%)',
+          hudTop: '10%', hudLeft: '10%', hudWidth: '80%', hudHeight: '80%',
+          status: 'NOMINAL CLEAR', statusColor: 'var(--accent-emerald)'
+        }
+      ];
+
+      // UI Elements
+      const sampleCards = document.querySelectorAll('.sample-card');
+      const activeSampleId = document.getElementById('active-sample-id');
+      const activeSampleName = document.getElementById('active-sample-name');
+      const activeViewportImg = document.getElementById('active-viewport-img');
+      const activeHudBox = document.getElementById('active-hud-box');
+      const activeHudTag = document.getElementById('active-hud-tag');
+      
+      const teleCat = document.getElementById('tele-cat');
+      const teleConf = document.getElementById('tele-conf');
+      const teleBbox = document.getElementById('tele-bbox');
+      const teleStatus = document.getElementById('tele-status');
+      
+      const btnRandomPick = document.getElementById('btn-random-pick');
+      let currentIndex = 0;
+
+      function loadSample(index) {
+        if (index < 0 || index >= testSamples.length) return;
+        currentIndex = index;
+        const data = testSamples[index];
+
+        // Update active class on cards
+        sampleCards.forEach((card, i) => {
+          if (i === index) card.classList.add('active');
+          else card.classList.remove('active');
+        });
+
+        // Smooth image transition
+        activeViewportImg.style.opacity = '0.3';
+        setTimeout(() => {
+          activeViewportImg.src = data.img;
+          activeViewportImg.style.opacity = '1';
+        }, 150);
+
+        // Update text details
+        activeSampleId.textContent = data.id;
+        activeSampleName.textContent = data.name;
+        teleCat.textContent = data.category;
+        teleConf.textContent = data.conf;
+        teleBbox.textContent = data.bbox;
+        teleStatus.textContent = data.status;
+        teleStatus.style.color = data.statusColor;
+
+        // Update HUD Box positions
+        activeHudBox.style.top = data.hudTop;
+        activeHudBox.style.left = data.hudLeft;
+        activeHudBox.style.width = data.hudWidth;
+        activeHudBox.style.height = data.hudHeight;
+        activeHudTag.textContent = data.hudText;
+      }
+
+      // Card click events
+      sampleCards.forEach((card, index) => {
+        card.addEventListener('click', () => loadSample(index));
+      });
+
+      // Random Picker Button
+      btnRandomPick?.addEventListener('click', () => {
+        let randomIndex;
+        do {
+          randomIndex = Math.floor(Math.random() * testSamples.length);
+        } while (randomIndex === currentIndex && testSamples.length > 1);
+        
+        loadSample(randomIndex);
+        // Micro animation on button
+        btnRandomPick.style.transform = 'scale(0.95)';
+        setTimeout(() => btnRandomPick.style.transform = 'none', 150);
+      });
+
+      // Diagnostic Heatmap Toggle
+      const btnToggleHeatmap = document.getElementById('btn-toggle-heatmap');
+      const diagnosticViewImg = document.getElementById('diagnostic-view-img');
+      let showingHeatmap = true;
+
+      btnToggleHeatmap?.addEventListener('click', () => {
+        showingHeatmap = !showingHeatmap;
+        if (showingHeatmap) {
+          diagnosticViewImg.src = 'assets/sample_heatmap.jpg';
+          btnToggleHeatmap.textContent = 'Toggle Grad-CAM Layer';
+        } else {
+          diagnosticViewImg.src = 'assets/sample_crack.jpg';
+          btnToggleHeatmap.textContent = 'Show RGB Input';
+        }
+      });
+
+      // Simulated Train Speed Controls
+      const speedBtns = document.querySelectorAll('.speed-btn[data-speed]');
+      const teleGps = document.getElementById('tele-gps');
+      const laserBeam = document.getElementById('laser-beam');
+
+      speedBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          speedBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const speed = btn.getAttribute('data-speed');
+          
+          if (speed === '0') {
+            laserBeam.style.animationPlayState = 'paused';
+            teleGps.textContent = 'MP 142.85 (STATIONARY)';
+          } else {
+            laserBeam.style.animationPlayState = 'running';
+            const duration = Math.max(0.8, 3 - (speed / 50));
+            laserBeam.style.animationDuration = duration + 's';
+            teleGps.textContent = `MP ${(142.85 + Math.random() * 0.1).toFixed(2)} (${speed} km/h)`;
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

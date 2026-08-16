@@ -29,3 +29,6 @@ data/processed/*
 
 # MLflow
 mlruns/
+
+# Training run outputs (logs, plots — regenerated on training)
+runs/
