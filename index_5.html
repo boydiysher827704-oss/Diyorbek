@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Railway Track Defect Detection — Field Report</title>
+<meta name="description" content="An object-detection model that flags railway track sections as defective or non-defective from a photo, to support (not replace) manual track inspection." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #15120d;
+    --bg-panel: #1d1912;
+    --bg-panel-2: #241f16;
+    --ink: #f1ebe0;
+    --ink-soft: #b9ac97;
+    --rule: #3c342783;
+    --rule-solid: #453b2c;
+    --rust: #d9662e;
+    --rust-dark: #b8501f;
+    --amber: #e6a83a;
+    --steel: #6d94a3;
+    --steel-dark: #4c6b78;
+    --green: #7fae7c;
+    --paper-dark: #0e0c09;
+    --paper-dark-text: #f1ebe0;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(217,102,46,0.10), transparent),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(230,168,58,0.035) 39px, rgba(230,168,58,0.035) 40px);
+    color: var(--ink);
+    font-family: "Inter", sans-serif;
+    line-height: 1.55;
+  }
+
+  h1, h2, h3, .display {
+    font-family: "Oswald", sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+
+  .mono { font-family: "JetBrains Mono", monospace; }
+
+  a { color: inherit; }
+
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  /* ---------- Header ---------- */
+  header.site {
+    border-bottom: 3px solid var(--ink);
+    background: var(--bg-panel);
+  }
+  .site-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 28px;
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-mark {
+    width: 34px; height: 34px;
+    flex-shrink: 0;
+  }
+  .brand-text {
+    font-family: "Oswald", sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
+  .brand-text span {
+    display: block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  .doc-tag {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    border: 1px solid var(--rule-solid);
+    padding: 5px 10px;
+    border-radius: 3px;
+    background: var(--bg);
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    padding: 64px 0 48px;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 44px;
+    align-items: start;
+  }
+  .eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--rust-dark);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 20px; height: 2px;
+    background: var(--rust);
+    display: inline-block;
+  }
+  h1.title {
+    font-size: clamp(34px, 5vw, 54px);
+    font-weight: 700;
+    line-height: 1.04;
+    margin-bottom: 20px;
+  }
+  h1.title .accent { color: var(--rust); }
+  .lead {
+    font-size: 17px;
+    color: var(--ink-soft);
+    max-width: 46ch;
+    margin-bottom: 28px;
+  }
+  .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .button {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 13px 22px;
+    border-radius: 3px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 2px solid transparent;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .button.primary { background: var(--rust); color: #fff; border-color: var(--rust); }
+  .button.primary:hover { transform: translateY(-2px); box-shadow: 4px 4px 0 var(--rust-dark); }
+  .button.secondary { background: transparent; color: var(--ink); border-color: var(--ink); }
+  .button.secondary:hover { transform: translateY(-2px); box-shadow: 4px 4px 0 var(--ink); }
+  .button.is-disabled { opacity: .45; pointer-events: none; }
+
+  /* Inspection tag */
+  .tag-card {
+    background: var(--paper-dark);
+    color: var(--paper-dark-text);
+    border-radius: 4px;
+    padding: 26px 26px 22px;
+    position: relative;
+    box-shadow: 0 14px 30px -10px rgba(0,0,0,0.35);
+  }
+  .tag-card::before {
+    content: "";
+    position: absolute;
+    top: 18px; right: 18px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--amber);
+    box-shadow: 0 0 0 3px rgba(217,153,46,0.25);
+  }
+  .tag-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #b9c6cb;
+    margin-bottom: 10px;
+  }
+  .tag-metric {
+    font-family: "Oswald", sans-serif;
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--amber);
+    margin-bottom: 4px;
+  }
+  .tag-metric small { font-size: 20px; color: #b9c6cb; font-family: "Inter", sans-serif; text-transform: none; }
+  .tag-sub { font-size: 13px; color: #cfd8db; margin-bottom: 18px; }
+  .tag-rule { border-top: 1px dashed #4a5b62; margin: 16px 0; }
+  .tag-row { display: flex; justify-content: space-between; font-family: "JetBrains Mono", monospace; font-size: 12.5px; padding: 5px 0; color: #cfd8db; }
+  .tag-row b { color: #fff; }
+
+  /* ---------- Section shell ---------- */
+  section { padding: 56px 0; border-top: 1px solid var(--rule-solid); }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .sec-num { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--rust-dark); }
+  h2.sec-title { font-size: clamp(22px, 3vw, 30px); }
+  .sec-desc { color: var(--ink-soft); max-width: 60ch; margin-top: 8px; font-size: 15px; }
+
+  /* ---------- Problem / method cards ---------- */
+  .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .card {
+    background: var(--bg-panel);
+    border: 1px solid var(--rule-solid);
+    border-radius: 4px;
+    padding: 22px;
+  }
+  .card h3 { font-size: 15px; margin-bottom: 10px; color: var(--rust-dark); }
+  .card p, .card li { font-size: 14px; color: var(--ink-soft); }
+  .card ul { margin: 0; padding-left: 18px; }
+  .card li { margin-bottom: 6px; }
+
+  /* ---------- Stats strip ---------- */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--rule-solid); border-radius: 4px; overflow: hidden; }
+  .stat { padding: 20px 18px; border-right: 1px solid var(--rule-solid); background: var(--bg-panel); }
+  .stat:last-child { border-right: none; }
+  .stat .n { font-family: "Oswald", sans-serif; font-size: 28px; font-weight: 700; color: var(--steel-dark); }
+  .stat .l { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .04em; margin-top: 4px; }
+
+  /* ---------- Class balance bars ---------- */
+  .balance { margin-top: 22px; }
+  .bal-row { display: grid; grid-template-columns: 110px 1fr 70px; align-items: center; gap: 12px; margin-bottom: 10px; font-family: "JetBrains Mono", monospace; font-size: 12.5px; }
+  .bal-track { background: var(--rule-solid); border-radius: 2px; overflow: hidden; height: 18px; display: flex; }
+  .bal-fill { height: 100%; }
+  .bal-fill.d { background: var(--rust); }
+  .bal-fill.nd { background: var(--steel); }
+
+  /* ---------- Gallery ---------- */
+  .gallery-tabs { display: flex; gap: 8px; margin-bottom: 22px; }
+  .gtab { font-family: "JetBrains Mono", monospace; font-size: 12.5px; padding: 9px 16px; border: 1px solid var(--ink); border-radius: 3px; cursor: pointer; background: transparent; }
+  .gtab.active { background: var(--ink); color: var(--bg-panel); }
+  .gpanel { display: none; }
+  .gpanel.active { display: block; }
+  .ggrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .gitem { border: 1px solid var(--rule-solid); border-radius: 4px; overflow: hidden; background: var(--bg-panel); }
+  .gitem img { width: 100%; height: 130px; object-fit: cover; display: block; }
+  .gitem .verdict { padding: 9px 10px; font-family: "JetBrains Mono", monospace; font-size: 11.5px; display: flex; justify-content: space-between; align-items: center; }
+  .verdict.defective { color: var(--rust-dark); }
+  .verdict.nondefective { color: var(--steel-dark); }
+  .verdict .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .verdict.defective .dot { background: var(--rust); }
+  .verdict.nondefective .dot { background: var(--steel); }
+  .gitem .plain-label { padding: 9px 10px; font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--ink-soft); }
+
+  /* ---------- Comparison table ---------- */
+  table.cmp { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.cmp th, table.cmp td { border: 1px solid var(--rule-solid); padding: 10px 12px; text-align: left; }
+  table.cmp th { background: var(--bg-panel); font-family: "JetBrains Mono", monospace; font-size: 11.5px; text-transform: uppercase; letter-spacing: .03em; color: var(--ink-soft); }
+  table.cmp td.num { font-family: "JetBrains Mono", monospace; }
+  table.cmp tr.selected td { background: rgba(74,115,86,0.08); font-weight: 600; }
+
+  .decision-box {
+    margin-top: 18px;
+    background: var(--bg-panel-2);
+    border-left: 3px solid var(--amber);
+    color: var(--paper-dark-text);
+    border-radius: 4px;
+    padding: 18px 20px;
+    font-size: 14px;
+  }
+  .decision-box b { color: var(--amber); }
+
+  /* ---------- Limitation ---------- */
+  .limitation {
+    border: 2px solid var(--rust);
+    border-radius: 4px;
+    padding: 22px;
+    background: repeating-linear-gradient(135deg, var(--bg-panel), var(--bg-panel) 12px, rgba(217,102,46,0.08) 12px, rgba(217,102,46,0.08) 24px);
+  }
+  .limitation h3 { color: var(--rust-dark); font-size: 15px; margin-bottom: 10px; }
+  .limitation p { font-size: 14px; color: var(--ink); margin: 0 0 10px; }
+  .limitation p:last-child { margin-bottom: 0; }
+
+  /* ---------- Repro ---------- */
+  .repro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .code-block {
+    background: var(--paper-dark);
+    color: #cfe8d8;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    padding: 16px 18px;
+    border-radius: 4px;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .code-block .c1 { color: #8fb3bd; }
+
+  /* ---------- Footer ---------- */
+  footer.site {
+    border-top: 3px solid var(--ink);
+    padding: 30px 0 40px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  footer.site a { color: var(--rust-dark); text-decoration: none; border-bottom: 1px solid currentColor; }
+  .foot-grid { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+
+  @media (max-width: 860px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .cards3 { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(2) { border-right: none; }
+    .ggrid { grid-template-columns: repeat(2, 1fr); }
+    .repro-grid { grid-template-columns: 1fr; }
+  }  .field-photo {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 28px;
+    align-items: center;
+  }
+  .field-photo img {
+    width: 100%;
+    border-radius: 4px;
+    border: 1px solid var(--rule-solid);
+    display: block;
+  }
+  .field-photo .cap { font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--ink-soft); margin-top: 8px; }
+
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="site-inner">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="17" width="36" height="2.5" fill="#201d18"/>
+        <rect x="2" y="24" width="36" height="2.5" fill="#201d18"/>
+        <rect x="6" y="10" width="4" height="24" fill="#a94a2c"/>
+        <rect x="17" y="10" width="4" height="24" fill="#a94a2c"/>
+        <rect x="28" y="10" width="4" height="24" fill="#a94a2c"/>
+      </svg>
+      <div class="brand-text">Track Defect Detection<span>Capstone field report · AI/ML Fundamentals</span></div>
+    </div>
+    <div class="doc-tag">REPORT NO. 2026-CS-08</div>
+  </div>
+</header>
+
+<div class="wrap hero">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">Automated visual inspection</div>
+      <h1 class="title">Flagging rail defects<br/>before they get <span class="accent">missed.</span></h1>
+      <p class="lead">An object-detection model (YOLOv8) that scans photos of railway track and flags sections as <strong>defective</strong> or <strong>non-defective</strong> — built to support manual track inspection, not replace it.</p>
+      <div class="actions">
+        <a class="button primary is-disabled" href="#" data-url="https://diyorbek-ppg2ai9reu6vhpt8wzo6py.streamlit.app/" target="_blank" rel="noopener noreferrer" aria-disabled="true">▸ Open live demo</a>
+        <a class="button secondary is-disabled" href="#" data-url="https://github.com/boydiysher827704-oss/Diyorbek" target="_blank" rel="noopener noreferrer" aria-disabled="true">View project evidence ↗</a>
+      </div>
+    </div>
+
+    <div class="tag-card">
+      <div class="tag-label">Test-set inspection tag</div>
+      <div class="tag-metric">78.6<small>% recall</small></div>
+      <div class="tag-sub">112 held-out images, never seen in training</div>
+      <div class="tag-rule"></div>
+      <div class="tag-row"><span>Precision</span><b>59.0%</b></div>
+      <div class="tag-row"><span>mAP50</span><b>65.1%</b></div>
+      <div class="tag-row"><span>Model</span><b>YOLOv8n · 30 epochs</b></div>
+    </div>
+  </div>
+</div>
+
+<section class="wrap" id="problem">
+  <div class="sec-head">
+    <div>
+      <div class="sec-num">01 — CONTEXT</div>
+      <h2 class="sec-title">Problem &amp; method</h2>
+    </div>
+  </div>
+  <div class="cards3">
+    <div class="card">
+      <h3>PROBLEM / USER</h3>
+      <p>Manual railway track inspection is slow, expensive, and prone to human error. This tool is a screening aid for a track inspection team — not an automated pass/fail authority.</p>
+    </div>
+    <div class="card">
+      <h3>HOW IT WORKS</h3>
+      <ul>
+        <li>Inspector uploads a photo of a rail section.</li>
+        <li>A fine-tuned YOLOv8 model scans it for defect patterns.</li>
+        <li>App returns a label + confidence score for human review.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>WHY RECALL FIRST</h3>
+      <p>Missing a real defect (false negative) is costlier than a false alarm. The model — and its evaluation — are tuned to prioritize catching real defects over avoiding false alarms.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="dataset">
+  <div class="sec-head">
+    <div>
+      <div class="sec-num">02 — DATA</div>
+      <h2 class="sec-title">Dataset on record</h2>
+      <p class="sec-desc">Roboflow Universe — "Railway Track Fault Detection" (v1), CC BY 4.0. Full audit in <span class="mono">EDA_NOTES.md</span>.</p>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="n">1,118</div><div class="l">Total images</div></div>
+    <div class="stat"><div class="n">783 / 223 / 112</div><div class="l">Train / Valid / Test</div></div>
+    <div class="stat"><div class="n">2</div><div class="l">Classes</div></div>
+    <div class="stat"><div class="n">CC BY 4.0</div><div class="l">License</div></div>
+  </div>
+
+  <div class="balance">
+    <div class="bal-row">
+      <span>Train</span>
+      <div class="bal-track"><div class="bal-fill d" style="width:71.9%"></div><div class="bal-fill nd" style="width:28.1%"></div></div>
+      <span>555 / 217</span>
+    </div>
+    <div class="bal-row">
+      <span>Valid</span>
+      <div class="bal-track"><div class="bal-fill d" style="width:74.4%"></div><div class="bal-fill nd" style="width:25.6%"></div></div>
+      <span>163 / 56</span>
+    </div>
+    <div class="bal-row">
+      <span>Test</span>
+      <div class="bal-track"><div class="bal-fill d" style="width:78%"></div><div class="bal-fill nd" style="width:22%"></div></div>
+      <span>85 / 24</span>
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="gallery">
+  <div class="sec-head">
+    <div>
+      <div class="sec-num">03 — EVIDENCE</div>
+      <h2 class="sec-title">Inspection log</h2>
+      <p class="sec-desc">12 test-set images run through the actual trained model (real predictions, not staged), plus 10 sample training images. See <span class="mono">DATASET.md</span> for the full set.</p>
+    </div>
+  </div>
+
+  <div class="gallery-tabs">
+    <button class="gtab active" data-tab="test">Model predictions — test set (12)</button>
+    <button class="gtab" data-tab="train">Training samples (10)</button>
+  </div>
+
+  <div class="gpanel active" id="panel-test">
+    <div class="ggrid" id="grid-test"></div>
+  </div>
+  <div class="gpanel" id="panel-train">
+    <div class="ggrid" id="grid-train"></div>
+  </div>
+</section>
+
+<section class="wrap" id="experiments">
+  <div class="sec-head">
+    <div>
+      <div class="sec-num">04 — MODEL SELECTION</div>
+      <h2 class="sec-title">Two configurations, one decision</h2>
+      <p class="sec-desc">Validation-set comparison. Full write-up in <span class="mono">experiments/</span>.</p>
+    </div>
+  </div>
+
+  <table class="cmp">
+    <thead>
+      <tr><th>Metric (validation)</th><th>Baseline · 30 epochs</th><th>Experiment 2 · 50 epochs</th></tr>
+    </thead>
+    <tbody>
+      <tr class="selected"><td>Precision</td><td class="num">0.684</td><td class="num">0.691</td></tr>
+      <tr class="selected"><td>Recall (priority metric)</td><td class="num">0.680</td><td class="num">0.673</td></tr>
+      <tr class="selected"><td>mAP50</td><td class="num">0.678</td><td class="num">0.684</td></tr>
+      <tr><td>Training time</td><td class="num">~8 min</td><td class="num">~14 min</td></tr>
+    </tbody>
+  </table>
+  <div class="decision-box">
+    <b>Decision:</b> Baseline (30 epochs) selected. More training did not meaningfully improve recall — the extra 20 epochs bought roughly nothing, so the faster configuration was kept.
+  </div>
+</section>
+
+<section class="wrap" id="limitation">
+  <div class="sec-head">
+    <div>
+      <div class="sec-num">05 — DISCLOSED LIMITATION</div>
+      <h2 class="sec-title">What the numbers don't fully show</h2>
+    </div>
+  </div>
+  <div class="limitation">
+    <h3>⚠ Confirmed near-duplicate leakage</h3>
+    <p>A perceptual-hash check comparing every test image against every training image found that <strong>12.5% of test images (14 of 112) have a near-identical match in the training set</strong> — 13 of those pairs were exact perceptual duplicates.</p>
+    <p>This means the test metrics above are likely <strong>somewhat optimistic</strong>. Real-world performance on genuinely unseen track is probably a bit lower. Full methodology and evidence in <span class="mono">ISSUE_LOG.md</span> and <span class="mono">EDA_NOTES.md</span>.</p>
+  </div>
+</section>
+
+<section class="wrap" id="field">
+  <div class="sec-head">
+    <div>
+      <div class="sec-num">06 — REAL-WORLD CONTEXT</div>
+      <h2 class="sec-title">How track inspection actually happens</h2>
+      <p class="sec-desc">Real rail networks already use dedicated inspection vehicles (defectoscope cars) that scan track for damage. A camera-based model like this one is a natural, low-cost addition to that existing workflow — not a replacement for it.</p>
+    </div>
+  </div>
+  <div class="field-photo">
+    <div>
+      <img src="assets/field_inspection_car.jpg" alt="A real railway defectoscope inspection car, underside equipment visible, winter conditions" loading="lazy" />
+      <div class="cap">Real-world rail inspection vehicle ("ВАГОН-ДЕФЕКТОСКОП" / defectoscope car) — reference photo, not this project's own hardware.</div>
+    </div>
+    <div class="card">
+      <h3>WHERE THIS MODEL FITS</h3>
+      <p>Vehicles like this already carry sensors and cameras along the track. A trained defect-detection model such as this one could run on footage from exactly this kind of vehicle — flagging frames for human review instead of requiring an inspector to watch every second of footage manually.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="repro">
+  <div class="sec-head">
+    <div>
+      <div class="sec-num">07 — REPRODUCE</div>
+      <h2 class="sec-title">Run it yourself</h2>
+    </div>
+  </div>
+  <div class="repro-grid">
+    <div class="code-block"><span class="c1"># predict on your own image</span>
+git clone https://github.com/boydiysher827704-oss/Diyorbek.git
+cd Diyorbek
+pip install -r requirements.txt
+python src/predict.py your_image.jpg</div>
+    <div class="code-block"><span class="c1"># retrain from scratch</span>
+python src/train.py
+<span class="c1"># see DATASET.md for API key setup</span></div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap foot-grid">
+    <div>Diyorbek — AI/ML Fundamentals Capstone · Railway Track Defect Detection</div>
+    <div>
+      <a href="https://github.com/boydiysher827704-oss/Diyorbek" target="_blank" rel="noopener noreferrer">GitHub repository</a>
+      &nbsp;·&nbsp;
+      <a href="https://diyorbek-ppg2ai9reu6vhpt8wzo6py.streamlit.app/" target="_blank" rel="noopener noreferrer">Live demo</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Enable action buttons that have a real data-url
+  document.querySelectorAll("a[data-url]").forEach((link) => {
+    const url = link.getAttribute("data-url");
+    if (url && url.startsWith("http")) {
+      link.href = url;
+      link.classList.remove("is-disabled");
+      link.removeAttribute("aria-disabled");
+    }
+  });
+
+  // Gallery tabs
+  document.querySelectorAll(".gtab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".gtab").forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".gpanel").forEach((p) => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("panel-" + btn.dataset.tab).classList.add("active");
+    });
+  });
+
+  // Real model predictions on 12 test-set images (from manifest.json produced by the
+  // actual trained model — see models/README.md)
+  const testResults = [
+    {"file":"gallery_01.jpg","predicted_class":"defective","confidence":0.6712},
+    {"file":"gallery_02.jpg","predicted_class":"non-defective","confidence":0.5261},
+    {"file":"gallery_03.jpg","predicted_class":"defective","confidence":0.5571},
+    {"file":"gallery_04.jpg","predicted_class":"defective","confidence":0.7048},
+    {"file":"gallery_05.jpg","predicted_class":"non-defective","confidence":0.4912},
+    {"file":"gallery_06.jpg","predicted_class":"non-defective","confidence":0.7743},
+    {"file":"gallery_07.jpg","predicted_class":"defective","confidence":0.71},
+    {"file":"gallery_08.jpg","predicted_class":"non-defective","confidence":0.8101},
+    {"file":"gallery_09.jpg","predicted_class":"defective","confidence":0.7197},
+    {"file":"gallery_10.jpg","predicted_class":"defective","confidence":0.5678},
+    {"file":"gallery_11.jpg","predicted_class":"defective","confidence":0.4847},
+    {"file":"gallery_12.jpg","predicted_class":"non-defective","confidence":0.3074}
+  ];
+
+  const gridTest = document.getElementById("grid-test");
+  testResults.forEach((r) => {
+    const cls = r.predicted_class === "defective" ? "defective" : "nondefective";
+    const div = document.createElement("div");
+    div.className = "gitem";
+    div.innerHTML = `
+      <img src="assets/gallery/${r.file}" alt="Test image, predicted ${r.predicted_class}" loading="lazy" />
+      <div class="verdict ${cls}"><span><span class="dot"></span>${r.predicted_class}</span><span>${(r.confidence*100).toFixed(0)}%</span></div>
+    `;
+    gridTest.appendChild(div);
+  });
+
+  const gridTrain = document.getElementById("grid-train");
+  for (let i = 1; i <= 10; i++) {
+    const n = String(i).padStart(2, "0");
+    const div = document.createElement("div");
+    div.className = "gitem";
+    div.innerHTML = `
+      <img src="assets/train_samples/train_${n}.jpg" alt="Training sample ${n}" loading="lazy" />
+      <div class="plain-label">train_${n}.jpg</div>
+    `;
+    gridTrain.appendChild(div);
+  }
+</script>
+
+</body>
+</html>
